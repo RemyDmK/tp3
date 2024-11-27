@@ -1,0 +1,45 @@
+name: Dev to Main Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm install
+
+    - name: Run backend unit tests
+      run: |
+        cd backend
+        npm test
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+
+    - name: Run frontend unit tests
+      run: |
+        cd frontend
+        npm test
+
+    - name: Build and push Docker images
+      run: |
+        echo ${{ secrets.DOCKER_USERNAME }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker-compose -f docker-compose.yml build
+        docker-compose -f docker-compose.yml push
